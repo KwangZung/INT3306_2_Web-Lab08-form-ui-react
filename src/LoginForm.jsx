@@ -1,16 +1,19 @@
 /**
  * Ví dụ sử dụng:
  * 2. React hook: useState, useRef, useEffect, useCallback, useMemo
- * 4. Sử dụng redux toolkit
+ * 4. Sử dụng redux toolkit: với username
  * 5. Tailwin Css Framework: <div className="flex items-center justify-center min-h-screen bg-gray-100">
  * 6. Sử dụng react router: 
  */
 
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setUsername } from "./app/userSlice";
 
 function LoginForm() {
-  const [username, setUsername] = useState("");
+  const username = useSelector((state) => state.user.username);
+  const dispatch = useDispatch();
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const usernameRef = useRef(null);
@@ -45,7 +48,7 @@ function LoginForm() {
           placeholder="Username"
           className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => dispatch(setUsername(e.target.value))}
         />
 
         <input
