@@ -3,13 +3,15 @@
  * 2. React hook: useState, useRef, useEffect, useCallback, useMemo
  * 4. Sử dụng redux toolkit: với username
  * 5. Tailwin Css Framework: <div className="flex items-center justify-center min-h-screen bg-gray-100">
- * 6. Sử dụng react router: 
+ * 6. Sử dụng react router: Định nghĩa routes trong app.js. Thêm trang dashboard, sau khi nhấn nút login thì chuyển sang trang dashboard
  */
 
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from "./app/userSlice";
+import { Link, useNavigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
 
 function LoginForm() {
   const username = useSelector((state) => state.user.username);
@@ -17,6 +19,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const usernameRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     usernameRef.current?.focus();
@@ -26,6 +29,9 @@ function LoginForm() {
     (e) => {
       e.preventDefault();
       setMessage(`Welcome, ${username}!`);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     },
     [username]
   );
