@@ -81,7 +81,7 @@ app.post('/api/login', async (req, res) => {
 
   // TẠO JWT TOKEN
   const token = jwt.sign(
-    { username: user.username, name: user.name },
+    { username: user.username},
     JWT_SECRET,
     { expiresIn: '1h' }
   );
@@ -91,7 +91,7 @@ app.post('/api/login', async (req, res) => {
     message: 'Đăng nhập thành công',
     token,
     expiresIn: '1h',
-    data: { username: user.username, name: user.name }
+    data: { username: user.username}
   });
 });
 

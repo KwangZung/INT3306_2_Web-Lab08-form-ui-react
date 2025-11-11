@@ -57,7 +57,7 @@ function LoginForm() {
           dispatch(setUsername(username));
 
           // Hiển thị thông báo
-          setMessage(`Chào mừng, ${res.data.data.name || username}!`);
+          setMessage(`Chào mừng, ${username}!`);
 
           // Chuyển hướng sau 1 giây
           setTimeout(() => navigate('/dashboard'), 1000);
