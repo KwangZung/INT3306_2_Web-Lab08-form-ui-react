@@ -11,7 +11,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import api from "./api";
 import { useSelector, useDispatch } from "react-redux";
-import { setUsername } from "./app/userSlice";
+import { setUser } from "./app/userSlice";
 import { Link, useNavigate } from 'react-router-dom';
 import { Navigate } from "react-router-dom";
 
@@ -48,19 +48,24 @@ function LoginForm() {
           username,
           password
         });
-        console.log(res);
 
         if (res.data.success) {
           
           
           // Lưu username vào Redux
-          dispatch(setUsername(username));
+          dispatch(setUser({
+            username: username,
+            token: res.data.token
+          }));
 
           // Hiển thị thông báo
           setMessage(`Chào mừng, ${username}!`);
+          console.log("run to here");
 
           // Chuyển hướng sau 1 giây
           setTimeout(() => navigate('/dashboard'), 1000);
+        } else {
+          setMessage(res.data.message)
         }
       } catch (err) {
         setError('Lỗi kết nối');
@@ -86,7 +91,7 @@ function LoginForm() {
           placeholder="Username"
           className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={username}
-          onChange={(e) => dispatch(setUsername(e.target.value))}
+          onChange={(e) => dispatch(setUser({username: e.target.value}))}
           disabled={isLoading}
         />
 
