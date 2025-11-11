@@ -48,6 +48,7 @@ function LoginForm() {
           username,
           password
         });
+        console.log(res);
 
         if (res.data.success) {
           
