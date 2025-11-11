@@ -1,18 +1,19 @@
-// server.js
+// backend/login-server/server.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = 5000;
+const JWT_SECRET = 'jwt-secret-2025-vn'; // Đổi khi deploy
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Đọc file users.json
+// Đường dẫn file users
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
 
 const readUsers = () => {
@@ -20,20 +21,43 @@ const readUsers = () => {
     const data = fs.readFileSync(USERS_FILE, 'utf8');
     return JSON.parse(data);
   } catch (err) {
-    console.error('Lỗi đọc file users.json:', err);
+    console.error('Lỗi đọc users.json:', err.message);
     return [];
   }
 };
 
-// API: POST /api/login
+// === MIDDLEWARE: XÁC THỰC JWT ===
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token không tồn tại'
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({
+        success: false,
+        message: 'Token không hợp lệ hoặc đã hết hạn'
+      });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// === API: ĐĂNG NHẬP ===
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
-  // Validate input
   if (!username || !password) {
     return res.status(400).json({
       success: false,
-      message: 'Vui lòng nhập username và password'
+      message: 'Thiếu username hoặc password'
     });
   }
 
@@ -47,9 +71,7 @@ app.post('/api/login', async (req, res) => {
     });
   }
 
-  // So sánh mật khẩu
   const isMatch = await bcrypt.compare(password, user.password);
-
   if (!isMatch) {
     return res.json({
       success: false,
@@ -57,33 +79,53 @@ app.post('/api/login', async (req, res) => {
     });
   }
 
-  // Đăng nhập thành công
+  // TẠO JWT TOKEN
+  const token = jwt.sign(
+    { username: user.username, name: user.name },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
   res.json({
     success: true,
-    message: 'Đăng nhập thành công!',
-    data: {
-      username: user.username,
-      name: user.name
-    }
+    message: 'Đăng nhập thành công',
+    token,
+    expiresIn: '1h',
+    data: { username: user.username, name: user.name }
   });
 });
 
-// Test route
+// === API: LẤY THÔNG TIN USER (BẢO VỆ BỞI JWT) ===
+app.get('/api/profile', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Xác thực thành công',
+    user: req.user
+  });
+});
+
+// === TRANG CHỦ (TEST) ===
 app.get('/', (req, res) => {
   res.send(`
-    <h1>Login Server đang chạy!</h1>
-    <p>Dùng POST /api/login để đăng nhập</p>
+    <h1>JWT Backend - Lab08</h1>
+    <p><strong>Thời gian:</strong> ${new Date().toLocaleString('vi-VN')}</p>
     <hr>
-    <h3>Ví dụ với curl:</h3>
-    <pre>
+    <h3>Test với curl:</h3>
+    <pre style="background:#f4f4f4;padding:10px;">
+# 1. Đăng nhập
 curl -X POST http://localhost:5000/api/login \\
   -H "Content-Type: application/json" \\
   -d '{"username":"admin","password":"123456"}'
+
+# 2. Lấy profile (dùng token từ bước 1)
+curl -X GET http://localhost:5000/api/profile \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
     </pre>
+    <p><strong>User test:</strong> admin / 123456</p>
   `);
 });
 
 app.listen(PORT, () => {
-  console.log(`Server chạy tại: http://localhost:${PORT}`);
-  console.log(`Test login: curl -X POST http://localhost:${PORT}/api/login -d '{"username":"admin","password":"123456"}' -H "Content-Type: application/json"`);
+  console.log(`Backend JWT chạy tại: http://localhost:${PORT}`);
+  console.log(`Mở: http://localhost:${PORT}`);
 });
