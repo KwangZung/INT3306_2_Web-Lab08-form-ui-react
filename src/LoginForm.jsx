@@ -44,10 +44,21 @@ function LoginForm() {
       setIsLoading(true);
 
       try {
-        const res = await api.get('/login.json');
+        const res = await api.post('/api/login', {
+          username,
+          password
+        });
+
         if (res.data.success) {
+          
+          
+          // Lưu username vào Redux
           dispatch(setUsername(username));
-          setMessage(`Welcome, ${username}!`);
+
+          // Hiển thị thông báo
+          setMessage(`Chào mừng, ${res.data.data.name || username}!`);
+
+          // Chuyển hướng sau 1 giây
           setTimeout(() => navigate('/dashboard'), 1000);
         }
       } catch (err) {
